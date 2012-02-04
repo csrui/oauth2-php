@@ -864,7 +864,7 @@ class OAuth2 {
 		}
 		
 		// Return retrieved client details together with input
-		return ($input + $stored);
+		return array_merge($input, $stored);
 	}
 
 	/**
@@ -901,7 +901,7 @@ class OAuth2 {
 		// by a 3rd-party (because we are not internally enforcing NONCEs, etc)
 		$params = $this->getAuthorizeParams($params);
 		
-		$params += array('scope' => NULL, 'state' => NULL);
+		$params = array_merge($params, array('scope' => NULL, 'state' => NULL));
 		extract($params);
 		
 		if ($state !== NULL) {
