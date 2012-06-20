@@ -895,26 +895,27 @@ class OAuth2 {
 	 *
 	 * @ingroup oauth2_section_4
 	 */
-	public function finishClientAuthorization($is_authorized, $user_id = NULL, $params = array()) {
-		
+	public function finishClientAuthorization($is_authorized, $requester_user_id = NULL, $params = array()) {
+
 		// We repeat this, because we need to re-validate. In theory, this could be POSTed
 		// by a 3rd-party (because we are not internally enforcing NONCEs, etc)
 		$params = $this->getAuthorizeParams($params);
-		
+
 		$params = array_merge($params, array('scope' => NULL, 'state' => NULL));
+
 		extract($params);
 		
 		if ($state !== NULL) {
 			$result["query"]["state"] = $state;
 		}
-		
+
 		if ($is_authorized === FALSE) {
 			throw new OAuth2RedirectException($redirect_uri, self::ERROR_USER_DENIED, "The user denied access to your application", $state);
 		} else {
 			if ($response_type == self::RESPONSE_TYPE_AUTH_CODE) {
-				$result["query"]["code"] = $this->createAuthCode($client_id, $user_id, $redirect_uri, $scope);
+				$result["query"]["code"] = $this->createAuthCode($client_id, $requester_user_id, $redirect_uri, $scope);
 			} elseif ($response_type == self::RESPONSE_TYPE_ACCESS_TOKEN) {
-				$result["fragment"] = $this->createAccessToken($client_id, $user_id, $scope);
+				$result["fragment"] = $this->createAccessToken($client_id, $requester_user_id, $scope);
 			}
 		}
 		
@@ -1039,6 +1040,7 @@ class OAuth2 {
 	 */
 	private function createAuthCode($client_id, $user_id, $redirect_uri, $scope = NULL) {
 		$code = $this->genAuthCode();
+
 		$this->storage->setAuthCode($code, $client_id, $user_id, $redirect_uri, time() + $this->getVariable(self::CONFIG_AUTH_LIFETIME), $scope);
 		return $code;
 	}
